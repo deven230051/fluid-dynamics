@@ -8,11 +8,11 @@ float fun(int a)
 }
 main()
 {
-    float u[X+1][T+1], h=1.0, k=0.0125,c,al,us,ue;
+    float u[X+1][T+1], h=1.0, k=0.0125,c,r,us,ue;
     int j,i;
     printf("\n Enter the square of 'c' :");
     scanf("%f",&c);
-    al=c*k/pow(h,2);
+    r=c*k/pow(h,2);
     printf(" Enter the value of u[0, t] :");
     scanf("%f",&us);
     printf("  Enter the value of u[%d,t]:", X);
@@ -23,8 +23,8 @@ main()
     u[j][0]=fun(j);
     for(i=0;i<=T-1;i++)
     for(j=1;j<=X-1;j++)
-    u[j][i+1]=al*u[j-1][i]+(1-2*al)*u[j][i]+al*u[j+1][i];
-    printf(" The value of alpha is %4.2f\n",al);
+    u[j][i+1]=r*u[j-1][i]+(1-2*r)*u[j][i]+r*u[j+1][i];
+    printf(" The value of alpha is %4.2f\n",r);
     printf(" The value of u[j,i] are:\n ");
     for(i=0;i<T;i++)
     {
