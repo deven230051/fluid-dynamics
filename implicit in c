@@ -1,0 +1,116 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function to perform Thomas Algorithm (Tridiagonal Matrix Algorithm)
+void thomasAlgorithm(int n, double* a, double* b, double* c, double* d) {
+    double* c_star = (double*)malloc(n * sizeof(double));
+    double* d_star = (double*)malloc(n * sizeof(double));
+
+    // Forward sweep
+    c_star[0] = c[0] / b[0];
+    d_star[0] = d[0] / b[0];
+
+    for (int i = 1; i < n; i++) {
+        double m = 1.0 / (b[i] - a[i] * c_star[i - 1]);
+        c_star[i] = c[i] * m;
+        d_star[i] = (d[i] - a[i] * d_star[i - 1]) * m;
+    }
+
+    // Back substitution
+    d[n - 1] = d_star[n - 1];
+    for (int i = n - 2; i >= 0; i--) {
+        d[i] = d_star[i] - c_star[i] * d[i + 1];
+    }
+
+    free(c_star);
+    free(d_star);
+}
+
+int main() {
+    // Given lambda value
+    double lambda = 0.020875;
+
+    // Spatial step size
+    double dx = 1.0;
+    // Time step size
+    double dt = 1.0;
+    // Number of spatial points (including boundary points)
+    int nx = 6;
+
+    // Initialize temperature vectors
+    double* u_old = (double*)malloc(nx * sizeof(double));
+    double* u_new = (double*)malloc(nx * sizeof(double));
+
+    // Initial condition
+    u_old[0] = 100.0; // u(0,0) = 100
+    u_old[1] = 0.0;   // Set the rest of u_old to 0 or appropriate initial values
+    u_old[2] = 0.0;
+    u_old[3] = 0.0;
+    u_old[4] = 0.0;
+    u_old[5] = 50.0;  // u(5,0) = 50
+
+    // Crank-Nicolson parameters
+    double r = lambda; // Given lambda as r
+
+    // Coefficients of the tridiagonal system
+    double* a = (double*)malloc((nx - 2) * sizeof(double)); // Lower diagonal
+    double* b = (double*)malloc((nx - 2) * sizeof(double)); // Main diagonal
+    double* c = (double*)malloc((nx - 2) * sizeof(double)); // Upper diagonal
+
+    for (int i = 0; i < nx - 2; i++) {
+        a[i] = -r / 2.0; // Lower diagonal
+        b[i] = 1.0 + r;  // Main diagonal
+        c[i] = -r / 2.0; // Upper diagonal
+    }
+
+    // Time stepping
+    int timeSteps = 1; // One time step to find u(1,1), u(2,1), u(3,1), u(4,1)
+
+    for (int t = 0; t < timeSteps; t++) {
+        // Right-hand side vector
+        double* d = (double*)malloc((nx - 2) * sizeof(double));
+
+        // Internal points only
+        for (int i = 1; i < nx - 1; i++) {
+            d[i - 1] = (1.0 - r) * u_old[i] + (r / 2.0) * (u_old[i - 1] + u_old[i + 1]);
+        }
+
+        // Adjust for boundary conditions
+        d[0] += r / 2.0 * u_old[0];     // Left boundary
+        d[nx - 3] += r / 2.0 * u_old[nx - 1]; // Right boundary
+
+        // Solve tridiagonal system
+        thomasAlgorithm(nx - 2, a, b, c, d);
+
+        // Update new values
+        for (int i = 1; i < nx - 1; i++) {
+            u_new[i] = d[i - 1];
+        }
+
+        // Apply boundary conditions
+        u_new[0] = 100.0; // u(0,1) = 100
+        u_new[nx - 1] = 50.0; // u(5,1) = 50
+
+        // Update for next iteration
+        for (int i = 0; i < nx; i++) {
+            u_old[i] = u_new[i];
+        }
+
+        free(d);
+    }
+
+    // Output the results for u(1,1), u(2,1), u(3,1), u(4,1)
+    printf("u(1,1) = %.4f\n", u_new[1]);
+    printf("u(2,1) = %.4f\n", u_new[2]);
+    printf("u(3,1) = %.4f\n", u_new[3]);
+    printf("u(4,1) = %.4f\n", u_new[4]);
+
+    // Free allocated memory
+    free(u_old);
+    free(u_new);
+    free(a);
+    free(b);
+    free(c);
+
+    return 0;
+}
