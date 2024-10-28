@@ -1,0 +1,64 @@
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
+const int N = 5; 
+const float tolerance = 1e-6; 
+
+void initializeGrid(float u[N][N]) {
+    
+    for (int j = 0; j < N; j++) {
+        u[0][j] = 0; 
+        u[4][j] = 12 + j; 
+    }
+    for (int i = 0; i < N; i++) {
+        u[i][0] = 3 * i; 
+        u[i][4] = i * i; 
+    }
+}
+
+void printGrid(float u[N][N]) {
+    std::cout << std::fixed << std::setprecision(2);
+    for (int j = 0; j < N; j++) {
+        for (int i = 0; i < N; i++) {
+            std::cout << u[i][j] << "\t";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void solveLaplace(float u[N][N]) {
+    bool converged = false;
+
+    while (!converged) {
+        converged = true;
+
+        for (int i = 1; i < N - 1; i++) {
+            for (int j = 1; j < N - 1; j++) {
+                float oldValue = u[i][j];
+                u[i][j] = 0.25 * (u[i + 1][j] + u[i - 1][j] + u[i][j + 1] + u[i][j - 1]);
+
+                // Check for convergence
+                if (fabs(u[i][j] - oldValue) > tolerance) {
+                    converged = false;
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    float u[N][N];
+
+    
+    initializeGrid(u);
+
+
+    solveLaplace(u);
+
+    
+    std::cout << "Resulting grid:\n";
+    printGrid(u);
+
+    return 0;
+}
